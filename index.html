@@ -500,16 +500,16 @@ tr:hover td{background:#faf8ff;}
           </select>
         </div>
       </div>
-      <div class="int-label">What interests you most? (select all)</div>
+      <div class="int-label">What interests you most? (select all that apply)</div>
       <div class="int-grid">
-        <label class="int-chip"><input type="checkbox" value="launches"/> 🚀 Launches</label>
-        <label class="int-chip"><input type="checkbox" value="cruise"/> 🛳️ Cruises</label>
-        <label class="int-chip"><input type="checkbox" value="deals"/> 💸 Deals</label>
-        <label class="int-chip"><input type="checkbox" value="beach"/> 🏖️ Beach</label>
-        <label class="int-chip"><input type="checkbox" value="nasa"/> 🔭 NASA</label>
-        <label class="int-chip"><input type="checkbox" value="food"/> 🍽️ Food</label>
-        <label class="int-chip"><input type="checkbox" value="events"/> 🎉 Events</label>
-        <label class="int-chip"><input type="checkbox" value="family"/> 👨‍👩‍👧 Family</label>
+        <div class="int-chip" data-val="launches" onclick="toggleChip(this)">🚀 Launches</div>
+        <div class="int-chip" data-val="cruise" onclick="toggleChip(this)">🛳️ Cruises</div>
+        <div class="int-chip" data-val="deals" onclick="toggleChip(this)">💸 Deals</div>
+        <div class="int-chip" data-val="beach" onclick="toggleChip(this)">🏖️ Beach</div>
+        <div class="int-chip" data-val="nasa" onclick="toggleChip(this)">🔭 NASA</div>
+        <div class="int-chip" data-val="food" onclick="toggleChip(this)">🍽️ Food</div>
+        <div class="int-chip" data-val="events" onclick="toggleChip(this)">🎉 Events</div>
+        <div class="int-chip" data-val="family" onclick="toggleChip(this)">👨‍👩‍👧 Family</div>
       </div>
       <!-- Interest-based live preview -->
       <div id="interestPreview" style="display:none;margin-bottom:18px;border-radius:13px;overflow:hidden;border:1.5px solid var(--border2);">
@@ -839,22 +839,14 @@ function showView(v){document.querySelectorAll('.view').forEach(e=>e.classList.r
 function doLogin(){const p=document.getElementById('loginPass').value;if(p===getPass()){document.getElementById('loginErr').textContent='';document.getElementById('loginPass').value='';showView('admin');renderAll();fetchLaunches(false);fetchCruises(false);}else document.getElementById('loginErr').textContent='Incorrect password.';}
 
 // ══ INTEREST CHIPS ══
-// Use only the 'change' event on the checkbox to avoid double-toggle.
-// We intercept the label click to prevent default (which would toggle the
-// checkbox via native label behaviour AND our listener), then manually toggle.
-document.querySelectorAll('.int-chip').forEach(c=>{
-  const cb=c.querySelector('input[type="checkbox"]');
-  c.addEventListener('click',e=>{
-    e.preventDefault(); // stop native label→checkbox toggle
-    cb.checked=!cb.checked;
-    c.classList.toggle('on',cb.checked);
-    renderInterestPreview();
-  });
-});
+function toggleChip(el){
+  el.classList.toggle('on');
+  renderInterestPreview();
+}
 
 // ══ INTEREST PREVIEW (live data) ══
 function renderInterestPreview(){
-  const selected=[...document.querySelectorAll('.int-chip.on input')].map(i=>i.value);
+  const selected=[...document.querySelectorAll('.int-chip.on')].map(i=>i.dataset.val);
   const wrap=document.getElementById('interestPreview');
   const list=document.getElementById('interestPreviewItems');
   if(!selected.length){wrap.style.display='none';return;}
@@ -933,20 +925,27 @@ function buildInterestBlock(k){
   }
 
   if(k==='events'){
+    const now=new Date();
     const localEvents=[
-      {title:'Cocoa Beach Craft Beer Festival',date:'Monthly',desc:'Local &amp; regional craft breweries at Cocoa Beach — 15 min from the hotel.'},
-      {title:'Merritt Island Farmers Market',date:'Every Saturday 8am',desc:'Fresh produce, artisan goods &amp; local food vendors on Merritt Island.'},
-      {title:'Melbourne Art Festival',date:'Seasonal',desc:'One of Florida\'s top outdoor art festivals with 200+ artists along the Indian River.'},
-      {title:'Ron Jon Surf Shop Events',date:'Year-round',desc:'Surf contests, meet &amp; greets, and beach events right on Cocoa Beach.'},
-      {title:'Brevard Zoo &amp; Wildlife Events',date:'Year-round',desc:'Animal encounters, zoo lights, kayak tours through nature preserves.'},
+      {title:'Cocoa Beach Pirate Fest',date:'April 26–27, 2025',location:'Cocoa Beach Pier',desc:'One of Florida\'s biggest pirate festivals — live music, costume contest, food &amp; craft vendors right on the beach.'},
+      {title:'Space Coast Art Festival',date:'Nov 29–30, 2025',location:'Cocoa Village',desc:'200+ juried artists along the Indian River waterfront — painting, sculpture, jewelry &amp; photography.'},
+      {title:'Merritt Island Farmers Market',date:'Every Saturday 8am–1pm',location:'Merritt Island',desc:'Fresh local produce, artisan goods, food vendors &amp; live music. Year-round weekly event.'},
+      {title:'Astronaut Memorial Foundation Gala',date:'Annual — Spring',location:'Kennedy Space Center',desc:'Formal gala honoring astronauts at KSC — unique experience open to the public.'},
+      {title:'Cocoa Village Haunted History Tour',date:'October weekends',location:'Cocoa Village',desc:'Guided walking tour through Cocoa\'s most haunted spots — history, mystery &amp; ghost stories.'},
+      {title:'Ron Jon Surf Shop Surfing Santas',date:'Dec 24 (Christmas Eve)',location:'Cocoa Beach',desc:'Hundreds of surfers in Santa suits hit the waves — a beloved Space Coast holiday tradition.'},
+      {title:'Melbourne Art Festival',date:'March (Annual)',location:'Eau Gallie Arts District',desc:'Top-ranked outdoor art festival with 200+ artists along the Indian River in Melbourne.'},
+      {title:'Brevard Zoo Wild Things Gala',date:'Annual — Fall',location:'Brevard Zoo, Melbourne',desc:'After-hours zoo event with live animals, food &amp; drinks — fundraiser and community favorite.'},
     ];
-    const rows=localEvents.map(e=>`<div style="padding:5px 0;border-bottom:1px solid var(--border);">
-      <div style="font-size:12px;font-weight:600;color:var(--text);">${e.title}</div>
-      <div style="font-size:11px;color:var(--orange2);margin-bottom:1px;">${e.date}</div>
+    const rows=localEvents.map(e=>`<div style="padding:7px 0;border-bottom:1px solid var(--border);">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+        <span style="font-size:12px;font-weight:700;color:var(--text);">${e.title}</span>
+        <span style="font-size:10px;font-weight:700;color:var(--orange2);white-space:nowrap;background:var(--orange-l);padding:2px 7px;border-radius:8px;flex-shrink:0;">${e.location}</span>
+      </div>
+      <div style="font-size:11px;color:var(--teal);margin:1px 0;">${e.date}</div>
       <div style="font-size:11px;color:var(--muted);">${e.desc}</div>
     </div>`).join('');
     return card('🎉','Local Events — Merritt Island &amp; Brevard County',
-      `<div style="margin:-2px 0 4px;">${rows}</div><div style="font-size:11px;color:var(--purple);margin-top:6px;">You\'ll get our monthly events guide covering festivals, markets &amp; happenings nearby.</div>`);
+      `<div style="margin:-2px 0 4px;">${rows}</div><div style="font-size:11px;color:var(--purple);margin-top:8px;background:var(--purple-l);padding:8px 10px;border-radius:8px;">📅 As a subscriber you\'ll get our <strong>monthly events guide</strong> — festivals, markets, pop-ups &amp; happenings delivered before they sell out.</div>`);
   }
 
   if(k==='beach'){
@@ -1021,7 +1020,7 @@ function submitSignup(e){
   if(!email||!email.includes('@')){document.getElementById('sf-email').style.borderColor='#dc2626';return;}
   const subs=getSubs();
   if(subs.find(s=>s.email.toLowerCase()===email.toLowerCase())){showToast('Already subscribed! 🎉','ok');return;}
-  const interests=[...document.querySelectorAll('.int-chip.on input')].map(i=>i.value);
+  const interests=[...document.querySelectorAll('.int-chip.on')].map(i=>i.dataset.val);
   const sub={id:Date.now().toString(),firstName:fname,lastName:document.getElementById('sf-lname').value.trim(),
     email,interests,visited:document.getElementById('sf-visited').value,
     source:document.getElementById('sf-source').value||'website',status:'active',joinedAt:new Date().toISOString()};
